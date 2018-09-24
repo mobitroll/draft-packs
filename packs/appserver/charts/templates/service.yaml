@@ -7,7 +7,12 @@ metadata:
   name: {{ template "fullname" . }}
 {{- end }}
   labels:
+  {{- if .Chart.Version }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+  {{- else }}
+    chart: {{ .Chart.Name }}-{{ .Release.Namespace }}
+  {{- end }}
+
 {{- if .Values.service.annotations }}
   annotations:
 {{ toYaml .Values.service.annotations | indent 4 }}
