@@ -8,7 +8,7 @@ image:
   pullPolicy: IfNotPresent
 service:
   name: REPLACE_ME_APP_NAME
-  type: ClusterIP
+  type: NodePort
   externalPort: 80
   internalPort: 8080
 resources:
