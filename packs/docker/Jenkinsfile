@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label "docker"
+        label "jenkins-python"
     }
     environment {
       ORG                 = 'REPLACE_ME_ORG'
