@@ -1,6 +1,6 @@
 CHART_REPO := http://jenkins-x-chartmuseum:8080
 CURRENT=$(pwd)
-NAME := REPLACE_ME_APP_NAME
+NAME := draft-packs
 OS := $(shell uname)
 RELEASE_VERSION := $(shell cat ../../VERSION)
 

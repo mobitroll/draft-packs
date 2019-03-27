@@ -3,10 +3,10 @@ pipeline {
       label "jenkins-maven"
     }
     environment {
-      ORG                 = 'REPLACE_ME_ORG'
-      APP_NAME            = 'REPLACE_ME_APP_NAME'
+      ORG                 = 'mobitroll'
+      APP_NAME            = 'draft-packs'
       CHARTMUSEUM_CREDS   = credentials('jenkins-x-chartmuseum')
-      DOCKER_REGISTRY_ORG = 'REPLACE_ME_DOCKER_REGISTRY_ORG'
+      DOCKER_REGISTRY_ORG = 'mobitroll'
     }
     stages {
       stage('CI Build and push snapshot') {
@@ -51,7 +51,7 @@ pipeline {
             sh "echo \$(jx-release-version) > VERSION"
             sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
           }
-          dir ('./charts/REPLACE_ME_APP_NAME') {
+          dir ('./charts/draft-packs') {
             container('maven') {
               sh "make tag"
             }
@@ -71,7 +71,7 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('./charts/REPLACE_ME_APP_NAME') {
+          dir ('./charts/draft-packs') {
             container('maven') {
               sh 'jx step changelog --version v\$(cat ../../VERSION)'
 

@@ -3,10 +3,10 @@ pipeline {
         label "jenkins-rust"
     }
     environment {
-      ORG                 = 'REPLACE_ME_ORG'
-      APP_NAME            = 'REPLACE_ME_APP_NAME'
+      ORG                 = 'mobitroll'
+      APP_NAME            = 'draft-packs'
       CHARTMUSEUM_CREDS   = credentials('jenkins-x-chartmuseum')
-      DOCKER_REGISTRY_ORG = 'REPLACE_ME_DOCKER_REGISTRY_ORG'
+      DOCKER_REGISTRY_ORG = 'mobitroll'
     }
     stages {
       stage('CI Build and push snapshot') {
@@ -23,7 +23,7 @@ pipeline {
             // seems we need to upgrade rust else we get compile errors using Rust 1.24.1
             sh 'rustup override set nightly'
             sh "cargo install"
-            sh "cp ~/.cargo/bin/REPLACE_ME_APP_NAME ."
+            sh "cp ~/.cargo/bin/draft-packs ."
 
             sh 'export VERSION=$PREVIEW_VERSION && skaffold run -f skaffold.yaml'
             sh "jx step validate --min-jx-version 1.2.36"
@@ -52,7 +52,7 @@ pipeline {
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
           }
-          dir ('./charts/REPLACE_ME_APP_NAME') {
+          dir ('./charts/draft-packs') {
             container('rust') {
               sh "make tag"
             }
@@ -61,7 +61,7 @@ pipeline {
             // seems we need to upgrade rust else we get compile errors using Rust 1.24.1
             sh 'rustup override set nightly'
             sh "cargo install"
-            sh "cp ~/.cargo/bin/REPLACE_ME_APP_NAME ."
+            sh "cp ~/.cargo/bin/draft-packs ."
 
             sh 'export VERSION=`cat VERSION` && skaffold run -f skaffold.yaml'
             sh "jx step validate --min-jx-version 1.2.36"
@@ -74,7 +74,7 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('./charts/REPLACE_ME_APP_NAME') {
+          dir ('./charts/draft-packs') {
             container('rust') {
               sh 'jx step changelog --version \$(cat ../../VERSION)'
 

@@ -1,6 +1,6 @@
 CHART_REPO := http://jenkins-x-chartmuseum:8080
 CURRENT=$(pwd)
-NAME := REPLACE_ME_APP_NAME
+NAME := draft-packs
 OS := $(shell uname)
 VERSION := $(shell cat ../../VERSION)
 
@@ -36,7 +36,7 @@ ifeq ($(OS),Darwin)
 	sed -i "" -e "s/tag: .*/tag: $(VERSION)/" values.yaml
 else ifeq ($(OS),Linux)
 	sed -i -e "s/version:.*/version: $(VERSION)/" Chart.yaml
-	sed -i -e "s|repository: .*|repository: $(JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST):$(JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT)/REPLACE_ME_ORG/$(NAME)|" values.yaml
+	sed -i -e "s|repository: .*|repository: $(JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST):$(JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT)/mobitroll/$(NAME)|" values.yaml
 	sed -i -e "s/tag: .*/tag: $(VERSION)/" values.yaml
 else
 	echo "platfrom $(OS) not supported to tag with"
