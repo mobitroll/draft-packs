@@ -6,12 +6,11 @@ build:
       template: "{{.JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST}}:{{.JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT}}/REPLACE_ME_DOCKER_REGISTRY_ORG/REPLACE_ME_APP_NAME:{{.VERSION}}"
   artifacts:
   - imageName: changeme
-    workspace: .
+    context: .
     docker: {}
   local: {}
 deploy:
-  kubectl:
-    manifests:
+  kubectl: {}
 profiles:
 - name: dev
   build:
