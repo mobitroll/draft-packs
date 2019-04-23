@@ -1,11 +1,11 @@
 pipeline {
     agent {
-        label "jenkins-python"
+        label "jenkins-nodejs"
     }
     environment {
-      ORG                 = 'REPLACE_ME_ORG'
-      APP_NAME            = 'REPLACE_ME_APP_NAME'
-      CHARTMUSEUM_CREDS   = credentials('jenkins-x-chartmuseum')
+      ORG               = 'REPLACE_ME_ORG'
+      APP_NAME          = 'REPLACE_ME_APP_NAME'
+      CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
       DOCKER_REGISTRY_ORG = 'REPLACE_ME_DOCKER_REGISTRY_ORG'
     }
     stages {
@@ -19,18 +19,34 @@ pipeline {
           HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
         }
         steps {
-          container('python') {
+          container('nodejs') {
+            sh "npm install"
 
-            sh 'export VERSION=$PREVIEW_VERSION && skaffold run -f skaffold.yaml'
+            sh 'export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml'
 
-            sh "jx step validate --min-jx-version 1.2.36"
-            sh "jx step post build --image \$JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST:\$JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT/$DOCKER_REGISTRY_ORG/$APP_NAME:$PREVIEW_VERSION"
+
+            sh "jx step post build --image $DOCKER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$PREVIEW_VERSION"
           }
 
           dir ('./charts/preview') {
-           container('python') {
+           container('nodejs') {
              sh "make preview"
              sh "jx preview --app $APP_NAME --dir ../.."
+           }
+          }
+        }
+      }
+      stage('Integration test') {
+        when {
+          branch 'PR-*'
+        }
+        environment {
+          PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
+        }
+        steps {
+          dir ('./charts/preview/itest') {
+           container('nodejs') {
+             sh "bash run.sh"
            }
           }
         }
@@ -40,26 +56,26 @@ pipeline {
           branch 'master'
         }
         steps {
-          container('python') {
+          container('nodejs') {
             // ensure we're not on a detached head
             sh "git checkout master"
             sh "git config --global credential.helper store"
-            sh "jx step validate --min-jx-version 1.1.73"
+
             sh "jx step git credentials"
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
           }
-          dir ('./charts/REPLACE_ME_APP_NAME') {
-            container('python') {
+          dir ('./charts/$APP_NAME') {
+            container('nodejs') {
               sh "make tag"
             }
           }
-          container('python') {
-            sh "python -m unittest"
+          container('nodejs') {
+            sh "npm install"
 
-            sh 'export VERSION=`cat VERSION` && skaffold run -f skaffold.yaml'
-            sh "jx step validate --min-jx-version 1.2.36"
-            sh "jx step post build --image \$JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST:\$JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT/$DOCKER_REGISTRY_ORG/$APP_NAME:\$(cat VERSION)"
+            sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
+
+            sh "jx step post build --image $DOCKER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:\$(cat VERSION)"
           }
         }
       }
@@ -68,12 +84,12 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('./charts/REPLACE_ME_APP_NAME') {
-            container('python') {
+          dir ('./charts/$APP_NAME') {
+            container('nodejs') {
               sh 'jx step changelog --version v\$(cat ../../VERSION)'
 
               // release the helm chart
-              sh 'make release'
+              sh 'jx step helm release'
 
               // promote through all 'Auto' promotion Environments
               sh 'jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)'
